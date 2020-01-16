@@ -3,10 +3,11 @@ import math
 import random
 
 PLAYER1_PIECE = 1
-PLAYER1 = 1
 PLAYER2_PIECE = 2
 AI_PIECE = 2
-AI = 2
+
+PLAYER1 = 0
+AI = 1
 
 NUM_ROWS = 6
 NUM_COLS = 7
@@ -190,51 +191,34 @@ def main():
                 print("Game Over: Player 2 Wins")
                 break
             print("-" * 45)
+    # playing AI
     else:
         board = Board()
-        turn = 1
-        if turn == PLAYER1:
-            p1_move = input("Player 1, enter the column for your move: ")
-            board.move(PLAYER1_PIECE, int(p1_move) - 1)
+        while True:
+            board.print_board()
+            turn = 0
+            if turn == PLAYER1:
+                p1_move = input("Player 1, enter the column for your move: ")
+                board.move(PLAYER1_PIECE, int(p1_move) - 1)
+                if board.game_won(PLAYER1_PIECE):
+                    board.print_board()
+                    print("Game Over: You Win!")
+                    break
+                board.print_board()
+                print("-" * 45)
+                turn += 1
+                turn = turn % 2
+            if turn == AI:
+                col, minimax_score = board.minimax(5, -math.inf, math.inf, True)
+                board.move(AI_PIECE, col)
+                if board.game_won(AI_PIECE):
+                    board.print_board()
+                    print("Game Over: You lost.")
+                    break
+                board.print_board()
+                print("-" * 45)
+                turn += 1
+                turn = turn % 2
 
 
 main()
-
-
-    if turn == PLAYER:
-        posx = event.pos[0]
-        col = int(math.floor(posx / SQUARESIZE))
-
-        if is_valid_location(board, col):
-            row = get_next_open_row(board, col)
-            drop_piece(board, row, col, PLAYER_PIECE)
-
-            if winning_move(board, PLAYER_PIECE):
-                label = myfont.render("Player 1 wins!!", 1, RED)
-                screen.blit(label, (40, 10))
-                game_over = True
-
-            turn += 1
-            turn = turn % 2
-
-            print_board(board)
-            draw_board(board)
-
-# Ask for Player 2 Input
-if turn == AI and not game_over:
-    col, minimax_score = minimax(board, 5, -math.inf, math.inf, True)
-
-    if is_valid_location(board, col):
-        row = get_next_open_row(board, col)
-        drop_piece(board, row, col, AI_PIECE)
-
-        if winning_move(board, AI_PIECE):
-            label = myfont.render("Player 2 wins!!", 1, YELLOW)
-            screen.blit(label, (40, 10))
-            game_over = True
-
-        print_board(board)
-        draw_board(board)
-
-    turn += 1
-    turn = turn % 2
