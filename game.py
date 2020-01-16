@@ -1,11 +1,16 @@
 import numpy as np
+import math
+import random
 
 PLAYER1_PIECE = 1
+PLAYER1 = 1
 PLAYER2_PIECE = 2
 AI_PIECE = 2
+AI = 2
 
 NUM_ROWS = 6
 NUM_COLS = 7
+
 
 class Board:
     def __init__(self):
@@ -94,7 +99,9 @@ class Board:
     def is_terminal_node(self):
         return self.game_won(self, PLAYER1_PIECE) or self.game_won(self, AI_PIECE) or len(self.get_valid_columns(self)) == 0
 
-"""
+    # function to evaluate board positions
+    #def
+
     # minimax algo with alpha-beta pruning for AI
     def minimax(self, depth, alpha, beta, maximizingPlayer):
         """
@@ -102,31 +109,39 @@ class Board:
         #:param alpha: value for
         #:param beta: value for
         #:param maximizingPlayer: boolean for whether the AI is the maximizing player
-        #:return:
-"""
+        #:return: tuple that contains column and score
+        """
         # get the index positions of the remaining valid columns in which to make a move
         valid_col = self.get_valid_columns(self)
         # if you've reached a terminal node in the tree
         game_over = self.game_won(self)
+
+        # maybe only need to define once
+        column = 0
+
         if depth == 0 or game_over:
             if game_over:
-                if winning_move(board, AI_PIECE):
+                if self.game_won(self, AI_PIECE):
                     return None, 10000000000  # column and score
-                elif winning_move(board, PLAYER_PIECE):
+                elif self.game_won(self, PLAYER1_PIECE):
                     return None, -10000000000
                 else:  # game over, no valid moves
                     return None, 0
             else:  # depth is zero
-                return None, score_position(board, AI_PIECE)
+                #return None, self.score_position(board, AI_PIECE)
+                return None, 0
 
         if maximizingPlayer:
             value = -math.inf
-            column = random.choice(valid_locations)
-            for col in valid_locations:
-                row = get_next_open_row(board, col)
-                b_copy = board.copy()
-                drop_piece(b_copy, row, col, AI_PIECE)
-                new_score = minimax(b_copy, depth - 1, alpha, beta, False)[1]
+            #column = random.choice(valid_col)
+            for col in valid_col:
+                #row = get_next_open_row(board, col)
+                b_copy = self.board.copy()
+                self.move(self, AI_PIECE, col)
+                #drop_piece(b_copy, row, col, AI_PIECE)
+
+                # recursively call minimax function
+                new_score = self.minimax(b_copy, depth - 1, alpha, beta, False)[1]
                 if new_score > value:
                     value = new_score
                     column = col
@@ -136,12 +151,14 @@ class Board:
             return column, value
         else:  # minimizing player
             value = math.inf
-            column = random.choice(valid_locations)
-            for col in valid_locations:
-                row = get_next_open_row(board, col)
-                b_copy = board.copy()
-                drop_piece(b_copy, row, col, PLAYER_PIECE)
-                new_score = minimax(b_copy, depth - 1, alpha, beta, True)[1]
+            #column = random.choice(valid_col)
+            for col in valid_col:
+                #row = get_next_open_row(board, col)
+                b_copy = self.board.copy()
+                #drop_piece(b_copy, row, col, PLAYER_PIECE)
+                self.move(self, PLAYER1_PIECE, col)
+                # recursively call minimax function
+                new_score = self.minimax(b_copy, depth - 1, alpha, beta, True)[1]
                 if new_score < value:
                     value = new_score
                     column = col
@@ -149,7 +166,6 @@ class Board:
                 if alpha >= beta:
                     break
             return column, value
-"""
 
 
 def main():
@@ -160,25 +176,65 @@ def main():
         while True:
             board.print_board()
             p1_move = input("Player 1, enter the column for your move: ")
-
-            # catch invalid column errors
-            col = board.move(1, int(p1_move) - 1)
-            if board.game_over(PLAYER1_PIECE):
+            board.move(PLAYER1_PIECE, int(p1_move) - 1)
+            if board.game_won(PLAYER1_PIECE):
                 board.print_board()
                 print("Game Over: Player 1 Wins")
                 break
             board.print_board()
             print("-" * 45)
             p2_move = input("Player 2, Enter the column for your move: ")
-            col2 = board.move(2, int(p2_move) - 1)
-            if board.game_over(PLAYER2_PIECE):
+            board.move(PLAYER2_PIECE, int(p2_move) - 1)
+            if board.game_won(PLAYER2_PIECE):
                 board.print_board()
                 print("Game Over: Player 2 Wins")
                 break
             print("-" * 45)
     else:
-        #board = Board()
-        print("Done")
+        board = Board()
+        turn = 1
+        if turn == PLAYER1:
+            p1_move = input("Player 1, enter the column for your move: ")
+            board.move(PLAYER1_PIECE, int(p1_move) - 1)
 
 
 main()
+
+
+    if turn == PLAYER:
+        posx = event.pos[0]
+        col = int(math.floor(posx / SQUARESIZE))
+
+        if is_valid_location(board, col):
+            row = get_next_open_row(board, col)
+            drop_piece(board, row, col, PLAYER_PIECE)
+
+            if winning_move(board, PLAYER_PIECE):
+                label = myfont.render("Player 1 wins!!", 1, RED)
+                screen.blit(label, (40, 10))
+                game_over = True
+
+            turn += 1
+            turn = turn % 2
+
+            print_board(board)
+            draw_board(board)
+
+# Ask for Player 2 Input
+if turn == AI and not game_over:
+    col, minimax_score = minimax(board, 5, -math.inf, math.inf, True)
+
+    if is_valid_location(board, col):
+        row = get_next_open_row(board, col)
+        drop_piece(board, row, col, AI_PIECE)
+
+        if winning_move(board, AI_PIECE):
+            label = myfont.render("Player 2 wins!!", 1, YELLOW)
+            screen.blit(label, (40, 10))
+            game_over = True
+
+        print_board(board)
+        draw_board(board)
+
+    turn += 1
+    turn = turn % 2
