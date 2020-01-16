@@ -1,4 +1,3 @@
-# initialize the connect four board
 import numpy as np
 
 PLAYER1_PIECE = 1
@@ -14,31 +13,8 @@ class Board:
         self.board = np.zeros((NUM_ROWS, NUM_COLS))
         # playable columns ?
 
-    # check to see if the the game has ended in a win
-    def Igame_over(self, move_row, move_column):
-        """
-        for a given move, first find all of the pieces that would form a box around the move, then see if they are valid
-        spots on the board, then check if there are 4 in each direction
-        """
-        player = self.board[move_row][move_column]
-        related_positions = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
-        for tup in related_positions:
-            need_to_win = 3
-            row_to_check = move_row
-            col_to_check = move_column
-            while need_to_win > 0:
-                row_to_check = row_to_check + tup[0]
-                col_to_check = col_to_check + tup[1]
-                if row_to_check in range(NUM_ROWS) and col_to_check in range(NUM_COLS) and self.board[row_to_check][col_to_check] == player:
-                    need_to_win -= 1
-                    if need_to_win == 0:
-                        return True
-                else:
-                    break
-        return False
-
-    # check to see if the game has ended
-    def game_over(self, player):
+    # check to see if the game has been won
+    def game_won(self, player):
         """
         take in player piece and check horizontal, vertical, pos diagonal, neg diagonal for 4 in a row. Return boolean
         indicating whether game is over
@@ -70,6 +46,7 @@ class Board:
                 if self.board[r][c] == player and self.board[r - 1][c + 1] == player and self.board[r - 2][c + 2] == \
                         player and self.board[r - 3][c + 3] == player:
                     return True
+
     def is_valid_move(self, col):
         # check to make sure that the move is in an empty space
         #if self.move()
@@ -113,6 +90,9 @@ class Board:
     def print_board(self):
         print(self.board)
 
+    # helper function for minimax, see if node is an end condition for the game
+    def is_terminal_node(self):
+        return self.game_won(self, PLAYER1_PIECE) or self.game_won(self, AI_PIECE) or len(self.get_valid_columns(self)) == 0
 
 """
     # minimax algo with alpha-beta pruning for AI
@@ -127,7 +107,7 @@ class Board:
         # get the index positions of the remaining valid columns in which to make a move
         valid_col = self.get_valid_columns(self)
         # if you've reached a terminal node in the tree
-        game_over = self.game_over
+        game_over = self.game_won(self)
         if depth == 0 or game_over:
             if game_over:
                 if winning_move(board, AI_PIECE):
@@ -199,5 +179,6 @@ def main():
     else:
         #board = Board()
         print("Done")
+
 
 main()
