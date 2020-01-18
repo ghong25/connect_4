@@ -14,9 +14,17 @@ NUM_COLS = 7
 
 
 class Game:
-    def __init__(self):
-        # rows, columns
-        self.board_state = np.zeros((NUM_ROWS, NUM_COLS))
+    """
+    By default, create a new game from an empty board, but potentially create game from an existing board position
+    """
+    def __init__(self, board_position=None):
+        # initialize a new board if default value
+        if board_position is None:
+            self.board_state = np.zeros((NUM_ROWS, NUM_COLS))
+        # otherwise, create a new game on the basis of the existing board position
+        else:
+            self.board_state = board_position
+
 
     # check to see if the game has been won
     def game_won(self, player):
@@ -51,6 +59,11 @@ class Game:
                 if self.board_state[r][c] == player and self.board_state[r - 1][c + 1] == player and self.board_state[r - 2][c + 2] \
                         == player and self.board_state[r - 3][c + 3] == player:
                     return True
+    #def valid_move(self, column):
+        """
+        :param column: column number for the move
+        :return: return bool indicating whether move is valid
+        """
 
     def move(self, player, column):
         """
@@ -69,6 +82,7 @@ class Game:
                 self.board_state[n][column] = player
                 piece_set = True
                 return n
+        ### potentially remove
         if not piece_set:
             next_move = input("Invalid Move: Please Make Another Selection: ")
             self.move(self, player, next_move - 1)
@@ -112,8 +126,8 @@ def minimax(game, depth, alpha, beta, max_player):
     """
     :param game: take in  game object
     :param depth: depth of the traversal
-    :param alpha: value for
-    :param beta: value for
+    :param alpha: value for minimum score that the maximizing player is assured of
+    :param beta: value for maximum score that the minimizing player is assured of
     :param max_player: boolean for whether the AI is the maximizing player
     :return: tuple that contains column and score
     """
@@ -124,7 +138,7 @@ def minimax(game, depth, alpha, beta, max_player):
     game_over = is_terminal_node(game)
 
     # maybe only need to define once
-    column = 0
+    #column = 0
 
     if game_over:
         if game.game_won(AI_PIECE):
@@ -136,10 +150,15 @@ def minimax(game, depth, alpha, beta, max_player):
 
     if max_player:
         value = -math.inf
-        #column = random.choice(valid_col)
+        column = random.choice(valid_col)
         for col in valid_col:
             #row = get_next_open_row(board, col)
-            g_copy = Game()
+
+            # problem with the stack overflow is likely here. each new game object is empty, so the moves don't build on
+            # each other
+
+            # create a new board object by passing in the current board state
+            g_copy = Game(board_position=game.board_state)
             g_copy.move(AI_PIECE, col)
             #drop_piece(b_copy, row, col, AI_PIECE)
 
@@ -154,10 +173,10 @@ def minimax(game, depth, alpha, beta, max_player):
         return column, value
     else:  # minimizing player
         value = math.inf
-        #column = random.choice(valid_col)
+        column = random.choice(valid_col)
         for col in valid_col:
             #row = get_next_open_row(board, col)
-            g_copy = Game()
+            g_copy = Game(board_position=game.board_state)
             #drop_piece(b_copy, row, col, PLAYER_PIECE)
             g_copy.move(PLAYER1_PIECE, col)
             # recursively call minimax function
@@ -178,16 +197,16 @@ def main():
         game = Game()
         while True:
             game.print_board()
-            p1_move = input("Player 1, enter the column for your move: ")
-            game.move(PLAYER1_PIECE, int(p1_move) - 1)
+            p1_move = int(input("Player 1, enter the column for your move: "))
+            game.move(PLAYER1_PIECE, p1_move - 1)
             if game.game_won(PLAYER1_PIECE):
                 game.print_board()
                 print("Game Over: Player 1 Wins")
                 break
             game.print_board()
             print("-" * 45)
-            p2_move = input("Player 2, Enter the column for your move: ")
-            game.move(PLAYER2_PIECE, int(p2_move) - 1)
+            p2_move = int(input("Player 2, Enter the column for your move: "))
+            game.move(PLAYER2_PIECE, p2_move - 1)
             if game.game_won(PLAYER2_PIECE):
                 game.print_board()
                 print("Game Over: Player 2 Wins")
@@ -200,8 +219,8 @@ def main():
             game.print_board()
             turn = 0
             if turn == PLAYER1:
-                p1_move = input("Player 1, enter the column for your move: ")
-                game.move(PLAYER1_PIECE, int(p1_move) - 1)
+                p1_move = int(input("Player 1, enter the column for your move: "))
+                game.move(PLAYER1_PIECE, p1_move - 1)
                 if game.game_won(PLAYER1_PIECE):
                     game.print_board()
                     print("Game Over: You Win!")
@@ -211,7 +230,7 @@ def main():
                 turn += 1
                 turn = turn % 2
             if turn == AI:
-                col, minimax_score = minimax(game, 5, -math.inf, math.inf, True)
+                col = minimax(game, 5, -math.inf, math.inf, True)[0]
                 game.move(AI_PIECE, col)
                 if game.game_won(AI_PIECE):
                     game.print_board()
