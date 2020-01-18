@@ -1,6 +1,5 @@
 from board import Board
 import math
-import random
 
 PLAYER1_PIECE = 1
 AI_PIECE = 2
@@ -77,17 +76,17 @@ def score_position(board, piece):
     return score
 
 
-def is_terminal_node(game):
+def is_terminal_node(board):
     """
-    :param game: game object
+    :param board: board object
     :return: boolean representing whether the board state of game object represents a terminal node
     """
-    return game.game_won(PLAYER1_PIECE) or game.game_won(AI_PIECE) or len(game.get_valid_columns()) == 0
+    return board.game_won(PLAYER1_PIECE) or board.game_won(AI_PIECE) or len(board.get_valid_columns()) == 0
 
 # minimax algo with alpha-beta pruning for AI
-def minimax(game, depth, alpha, beta, max_player):
+def minimax(board, depth, alpha, beta, max_player):
     """
-    :param game: take in  game object
+    :param board: take in board object
     :param depth: depth of the traversal
     :param alpha: value for minimum score that the maximizing player is assured of
     :param beta: value for maximum score that the minimizing player is assured of
@@ -95,32 +94,28 @@ def minimax(game, depth, alpha, beta, max_player):
     :return: tuple that contains column and minimax score
     """
     # get the index positions of the remaining valid columns in which to make a move
-    valid_col = game.get_valid_columns()
+    valid_col = board.get_valid_columns()
     # if you've reached a terminal node in the tree
-    game_over = is_terminal_node(game)
+    game_over = is_terminal_node(board)
     column = 0
 
 
     if depth == 0 or game_over:
         if game_over:
-            if game.game_won(AI_PIECE):
+            if board.game_won(AI_PIECE):
                 return None, 10000000000  # column and score
-            elif game.game_won(PLAYER1_PIECE):
+            elif board.game_won(PLAYER1_PIECE):
                 return None, -10000000000
             else:  # game over, no valid moves
                 return None, 0
         else:   # depth is zero
-            return None, score_position(game.board_state, AI_PIECE)
+            return None, score_position(board.board_state, AI_PIECE)
 
     if max_player:
         value = -math.inf
         for col in valid_col:
-
-            ### potentially setting the "new" board copy to the same obj in memory of the original, modifying original
-
-            # create a new board object by passing in the current board state
-
-            b_copy = Board(board_position=game.board_state.copy())
+            # initialize new board object with a copy of the current board state
+            b_copy = Board(board_position=board.board_state.copy())
             b_copy.move(AI_PIECE, col)
 
             # recursively call minimax function
@@ -134,9 +129,8 @@ def minimax(game, depth, alpha, beta, max_player):
         return column, value
     else:  # minimizing player
         value = math.inf
-        column = random.choice(valid_col)
         for col in valid_col:
-            b_copy = Board(board_position=game.board_state.copy())
+            b_copy = Board(board_position=board.board_state.copy())
             b_copy.move(PLAYER1_PIECE, col)
             # recursively call minimax function
             new_score = minimax(b_copy, depth - 1, alpha, beta, True)[1]
@@ -147,4 +141,3 @@ def minimax(game, depth, alpha, beta, max_player):
             if alpha >= beta:
                 break
         return column, value
-

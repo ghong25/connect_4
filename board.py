@@ -72,7 +72,6 @@ class Board:
                 return n
 
     def is_valid_location(self, column):
-        #return self.board_state[self.num_rows - 1][column] == 0
         return self.board_state[0][column] == 0
 
     def get_valid_columns(self):
